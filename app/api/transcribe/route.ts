@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { execFileSync } from "node:child_process";
-import { writeFileSync, readFileSync, unlinkSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { writeFileSync, readFileSync, unlinkSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 
 const SILICONFLOW_URL = "https://api.siliconflow.cn/v1/audio/transcriptions";
@@ -115,14 +114,15 @@ export async function POST(req: NextRequest) {
       const ff = await resolveFfmpeg();
       if (ff) {
         try {
+          // Scope temp files under the project so Turbopack's static analysis
+          // doesn't trace the whole filesystem into the server bundle.
+          const tmpDir = join(process.cwd(), ".transcode-tmp");
+          mkdirSync(tmpDir, { recursive: true });
           const buf = Buffer.from(await audio.arrayBuffer());
-          const hintPath = join(
-            tmpdir(),
-            `sf_in_${Date.now()}.${ext || "webm"}`,
-          );
-          const outPath = join(tmpdir(), `sf_out_${Date.now()}.wav`);
+          const hintPath = join(tmpDir, `sf_in_${Date.now()}.${ext || "webm"}`);
+          const outPath = join(tmpDir, `sf_out_${Date.now()}.wav`);
           writeFileSync(hintPath, buf);
-          execFileSync(ff, [
+          execFileSync(/*turbopackIgnore: true*/ ff, [
             "-y",
             "-i",
             hintPath,

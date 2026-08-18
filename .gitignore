@@ -16,6 +16,9 @@
 # next.js
 /.next/
 .next.bak/
+.next_bak_*/
+.next_old_*/
+.transcode-tmp/
 /out/
 
 # production
