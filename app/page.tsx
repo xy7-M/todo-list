@@ -131,7 +131,9 @@ export default function Home() {
               ]);
             else if (payload.eventType === "UPDATE")
               setTodos((t) =>
-                t.map((x) => (x.id === payload.new.id ? (payload.new as Todo) : x)),
+                t.map((x) =>
+                  x.id === payload.new.id ? { ...x, ...(payload.new as Todo) } : x,
+                ),
               );
             else if (payload.eventType === "DELETE")
               setTodos((t) =>
@@ -585,7 +587,10 @@ export default function Home() {
         {/* Todo list */}
         <ul className="mt-6 space-y-3">
           {todos.length === 0 && (
-            <li className="rounded-xl border border-dashed border-slate-800 px-4 py-10 text-center text-sm text-slate-500">
+            <li
+              key="empty"
+              className="rounded-xl border border-dashed border-slate-800 px-4 py-10 text-center text-sm text-slate-500"
+            >
               还没有待办。登录后说一句话试试吧。
             </li>
           )}
