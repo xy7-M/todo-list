@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { hasEnvVars } from "@/lib/utils";
 import {
@@ -12,6 +13,9 @@ import {
   X,
   Check,
   Loader2,
+  LogIn,
+  UserPlus,
+  LogOut,
 } from "lucide-react";
 
 type Todo = {
@@ -122,6 +126,30 @@ export default function Home() {
       if (channel) supabase!.removeChannel(channel);
     };
   }, []);
+
+  // React to sign-in / sign-out transitions (clicking the "退出" button
+  // or returning from /auth/login). Without this, the header keeps showing
+  // the pre-logout state until the page is reloaded.
+  useEffect(() => {
+    if (!supabase) return;
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (!session?.user) {
+        setTodos([]);
+      }
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  async function signOut() {
+    if (!supabase) return;
+    setHint("正在退出…");
+    const { error } = await supabase.auth.signOut();
+    if (error) setHint(`退出失败：${error.message}`);
+    else setHint("已退出");
+    setText("");
+    setPendingImage(null);
+  }
 
   // ---- Audio recording ----
   function stopRecording() {
@@ -295,13 +323,64 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100">
       <div className="mx-auto max-w-2xl px-4 py-10">
-        <header className="mb-8">
-          <h1 className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-3xl font-bold text-transparent">
-            🎙️ Todo · 语音待办
-          </h1>
-          <p className="mt-1 text-sm text-slate-400">
-            说一句话，AI 帮你拆成待办。支持语音输入 / 图片 / 自然语言解析。
-          </p>
+        <header className="mb-8 flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            {/*
+              Keep the title as a single JS string literal — React 19 + Turbopack
+              was collapsing one of the regular spaces around "·" when the text
+              sat next to emoji + CJK glyphs, producing a hydration mismatch.
+            */}
+            <h1 className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-3xl font-bold text-transparent">
+              {"🎙️ Todo · 语音待办"}
+            </h1>
+            <p className="mt-1 text-sm text-slate-400">
+              {hasEnvVars
+                ? "说一句话，AI 帮你拆成待办。支持语音输入 / 图片 / 自然语言解析。"
+                : "Supabase 未配置：可体验「语音输入 → 文字」流程，待办不会保存到云端。"}
+            </p>
+          </div>
+
+          {hasEnvVars && (
+            <div className="flex flex-none items-center gap-2 pt-1">
+              {user ? (
+                <>
+                  <span
+                    title={user.email ?? ""}
+                    className="hidden max-w-[160px] truncate text-xs text-slate-400 sm:inline"
+                  >
+                    {user.email}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={signOut}
+                    className="flex h-8 items-center gap-1 rounded-full border border-slate-700 bg-slate-800 px-3 text-xs text-slate-300 transition hover:border-slate-500 hover:text-slate-100"
+                  >
+                    <LogOut size={14} />
+                    退出
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/auth/login"
+                    prefetch
+                    className="flex h-8 items-center gap-1 rounded-full border border-slate-700 bg-slate-800 px-3 text-xs text-slate-300 transition hover:border-cyan-500/50 hover:text-cyan-300"
+                  >
+                    <LogIn size={14} />
+                    登录
+                  </Link>
+                  <Link
+                    href="/auth/sign-up"
+                    prefetch
+                    className="flex h-8 items-center gap-1 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 px-3 text-xs font-medium text-white shadow transition hover:opacity-90"
+                  >
+                    <UserPlus size={14} />
+                    注册
+                  </Link>
+                </>
+              )}
+            </div>
+          )}
         </header>
 
         {!hasEnvVars && (
