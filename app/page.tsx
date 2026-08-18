@@ -71,6 +71,7 @@ export default function Home() {
   const [pendingImage, setPendingImage] = useState<string | null>(null);
   const [uploadingImg, setUploadingImg] = useState(false);
   const [parsing, setParsing] = useState(false);
+  const [priority, setPriority] = useState<"high" | "medium" | "low">("medium");
 
   const mediaRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
@@ -306,7 +307,7 @@ export default function Home() {
       text: text.trim(),
       image_url: pendingImage,
       done: false,
-      priority: "medium",
+      priority,
     });
     if (error) setHint(`添加失败：${error.message}`);
     else {
@@ -327,7 +328,7 @@ export default function Home() {
       const res = await fetch("/api/parse-todo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: text.trim(), image_url: pendingImage }),
+        body: JSON.stringify({ text: text.trim(), image_url: pendingImage, priority }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "解析失败");
@@ -346,6 +347,17 @@ export default function Home() {
     await supabase.from("todos").update({ done: !t.done }).eq("id", t.id);
   }
 
+  async function cyclePriority(t: Todo) {
+    if (!supabase) return;
+    const next =
+      t.priority === "high"
+        ? "medium"
+        : t.priority === "medium"
+        ? "low"
+        : "high";
+    await supabase.from("todos").update({ priority: next }).eq("id", t.id);
+  }
+
   async function remove(t: Todo) {
     if (!supabase) return;
     await supabase.from("todos").delete().eq("id", t.id);
@@ -359,20 +371,19 @@ export default function Home() {
         <header className="mb-8 flex items-start justify-between gap-4">
           <div className="min-w-0">
             {/*
-              Keep the title as a single JS string literal — React 19 + Turbopack
-              was collapsing one of the regular spaces around "·" when the text
-              sat next to emoji + CJK glyphs, producing a hydration mismatch.
+              Emoji lives in its own element so React 19's text-node
+              normalisation (which was eating a regular space next to the
+              emoji + middot + CJK sequence) cannot cross the element boundary.
+              `suppressHydrationWarning` is the belt-and-suspenders for any
+              residual byte-level diff in the second text node — visually the
+              rendered string is identical, only the SSR vs CSR pipeline disagrees.
             */}
-            <h1 className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-3xl font-bold text-transparent">
-              {/*
-                dangerouslySetInnerHTML bypasses React 19's text-node
-                normalisation which was eating the regular space after "🎙️ "
-                when the heading sat next to the CJK characters. The emoji
-                itself contains a U+FE0F variation selector which is what
-                confuses the SSR/CSR reconciliation; injecting as innerHTML
-                makes it inert to that pass.
-              */}
-              <span dangerouslySetInnerHTML={{ __html: "🎙️ Todo &middot; 语音待办" }} />
+            <h1
+              className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-3xl font-bold text-transparent"
+              suppressHydrationWarning
+            >
+              <span aria-hidden="true">🎙️</span>
+              {" Todo · 语音待办"}
             </h1>
             <p className="mt-1 text-sm text-slate-400">
               {hasEnvVars
@@ -441,6 +452,34 @@ export default function Home() {
             rows={2}
             className="w-full resize-none bg-transparent px-2 py-1 text-base text-slate-100 placeholder:text-slate-500 focus:outline-none"
           />
+
+          {/* Priority selector: 高 / 中 / 低 — applies to direct add and as the
+              default for AI-parsed todos (the AI can still override per item). */}
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5 px-2">
+            <span className="text-[11px] uppercase tracking-wider text-slate-500">
+              优先级
+            </span>
+            {(["high", "medium", "low"] as const).map((p) => {
+              const ps = priorityStyle(p);
+              const active = priority === p;
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setPriority(p)}
+                  className={
+                    "rounded-full border px-2.5 py-0.5 text-xs transition " +
+                    (active
+                      ? ps.cls + " ring-1 ring-current"
+                      : "border-slate-700 bg-slate-800/40 text-slate-400 hover:border-slate-600 hover:text-slate-200")
+                  }
+                  aria-pressed={active}
+                >
+                  {ps.label}
+                </button>
+              );
+            })}
+          </div>
 
           <div className="mt-2 flex items-center justify-between gap-2">
             {/* left: image + mic (side by side, inside the box) */}
@@ -580,11 +619,14 @@ export default function Home() {
                     {t.text}
                   </p>
                   <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                    <span
-                      className={`rounded border px-1.5 py-0.5 text-[11px] ${ps.cls}`}
+                    <button
+                      type="button"
+                      onClick={() => cyclePriority(t)}
+                      className={`rounded border px-1.5 py-0.5 text-[11px] transition hover:opacity-80 ${ps.cls}`}
+                      title="点击切换优先级"
                     >
                       {ps.label}
-                    </span>
+                    </button>
                     {due && (
                       <span className="rounded border border-slate-700 bg-slate-800/60 px-1.5 py-0.5 text-[11px] text-slate-300">
                         ⏰ {due}

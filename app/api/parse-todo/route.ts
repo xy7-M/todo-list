@@ -22,7 +22,7 @@ function normalizeDueDate(d: any): string | null {
 
 export async function POST(req: NextRequest) {
   try {
-    const { text, image_url } = await req.json();
+    const { text, image_url, priority: reqPriority } = await req.json();
     if (!text || typeof text !== "string" || !text.trim()) {
       return NextResponse.json({ error: "缺少 text" }, { status: 400 });
     }
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
           user_id: user.id,
           text: String(t.text || "").trim(),
           due_date: normalizeDueDate(t.due_date),
-          priority: normalizePriority(t.priority),
+          priority: normalizePriority(t.priority || reqPriority),
           done: false,
         })
         .select()
