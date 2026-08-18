@@ -382,7 +382,7 @@ export default function Home() {
               className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-3xl font-bold text-transparent"
               suppressHydrationWarning
             >
-              <span aria-hidden="true">🎙️</span>
+              <span aria-hidden="true" suppressHydrationWarning>🎙️</span>
               {" Todo · 语音待办"}
             </h1>
             <p className="mt-1 text-sm text-slate-400">
@@ -516,12 +516,12 @@ export default function Home() {
                 }
               >
                 {recording ? (
-                  <>
+                  <span key="rec-on" className="flex items-center gap-2">
                     <Square size={16} />
                     <span className="tabular-nums">{seconds}s</span>
-                  </>
+                  </span>
                 ) : (
-                  <Mic size={18} />
+                  <Mic key="rec-off" size={18} />
                 )}
               </button>
 
@@ -541,9 +541,9 @@ export default function Home() {
                 className="flex h-9 items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 px-4 text-sm font-medium text-white shadow transition hover:opacity-90 disabled:opacity-40"
               >
                 {parsing ? (
-                  <Loader2 size={16} className="animate-spin" />
+                  <Loader2 key="ai-loading" size={16} className="animate-spin" />
                 ) : (
-                  <Sparkles size={16} />
+                  <Sparkles key="ai-sparkles" size={16} />
                 )}
                 AI 解析
               </button>
