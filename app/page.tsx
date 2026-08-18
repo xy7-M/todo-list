@@ -78,13 +78,23 @@ export default function Home() {
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   // Load todos + subscribe to realtime changes.
+  // React StrictMode in dev invokes this effect twice (mount → cleanup → mount)
+  // and supabase-js refuses a second `.on('postgres_changes', ...)` after the
+  // underlying channel has already subscribed. We guard with a ref + a
+  // cancelled flag so StrictMode's replay reuses the existing channel instead
+  // of registering a second one.
+  const channelRef = useRef<any>(null);
+  const fetchedRef = useRef(false);
+
   useEffect(() => {
     if (!supabase) return;
-    let channel: any;
+    if (channelRef.current) return;
+    let cancelled = false;
     (async () => {
       const {
         data: { user },
       } = await supabase!.auth.getUser();
+      if (cancelled) return;
       setUser(user);
       if (!user) return;
 
@@ -92,10 +102,18 @@ export default function Home() {
         .from("todos")
         .select("*")
         .order("created_at", { ascending: false });
-      if (data) setTodos(data as Todo[]);
+      if (cancelled) return;
+      if (data) {
+        fetchedRef.current = true;
+        setTodos(data as Todo[]);
+      }
 
-      channel = supabase!
-        .channel("todos-changes")
+      // Unique channel name per mount helps when an old subscription is still
+      // tearing down on the server side; without it the second mount would
+      // collide with the first's pending postgres_changes registration.
+      const channelName = `todos-changes-${user.id}-${Date.now()}`;
+      channelRef.current = supabase!
+        .channel(channelName)
         .on(
           "postgres_changes",
           {
@@ -123,7 +141,12 @@ export default function Home() {
         .subscribe();
     })();
     return () => {
-      if (channel) supabase!.removeChannel(channel);
+      cancelled = true;
+      if (channelRef.current && supabase) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+        fetchedRef.current = false;
+      }
     };
   }, []);
 
@@ -234,6 +257,15 @@ export default function Home() {
   }
 
   // ---- Image upload ----
+  // The user's filename may contain CJK characters / exclamation marks / spaces
+  // / etc which Supabase storage rejects with "Invalid key". We always rewrite
+  // the path with a server-generated UUID + sanitised extension and drop the
+  // original filename entirely.
+  function safeExt(name: string, fallback: string): string {
+    const m = (name.match(/\.([a-zA-Z0-9]{1,8})$/) || [, ""])[1].toLowerCase();
+    return /^[a-z0-9]{1,8}$/.test(m) ? m : fallback;
+  }
+
   async function onPickImage(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (!f) return;
@@ -243,10 +275,11 @@ export default function Home() {
     }
     setUploadingImg(true);
     try {
-      const path = `${user.id}/${Date.now()}_${f.name}`;
+      const ext = safeExt(f.name, f.type.split("/")[1] || "png");
+      const path = `${user.id}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
       const { error } = await supabase.storage
         .from("my-todo")
-        .upload(path, f, { upsert: true });
+        .upload(path, f, { upsert: true, contentType: f.type });
       if (error) throw error;
       const { data } = await supabase.storage
         .from("my-todo")
@@ -331,7 +364,15 @@ export default function Home() {
               sat next to emoji + CJK glyphs, producing a hydration mismatch.
             */}
             <h1 className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-3xl font-bold text-transparent">
-              {"🎙️ Todo · 语音待办"}
+              {/*
+                dangerouslySetInnerHTML bypasses React 19's text-node
+                normalisation which was eating the regular space after "🎙️ "
+                when the heading sat next to the CJK characters. The emoji
+                itself contains a U+FE0F variation selector which is what
+                confuses the SSR/CSR reconciliation; injecting as innerHTML
+                makes it inert to that pass.
+              */}
+              <span dangerouslySetInnerHTML={{ __html: "🎙️ Todo &middot; 语音待办" }} />
             </h1>
             <p className="mt-1 text-sm text-slate-400">
               {hasEnvVars
