@@ -47,6 +47,14 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
 
+  // /api/* routes do their own authorization (e.g. /api/parse-todo calls
+  // supabase.auth.getUser() internally and is guarded by RLS). Letting the
+  // proxy through avoids redirecting unauthenticated callers (e.g. the
+  // standalone /api/transcribe route) to the login page on a 307.
+  if (request.nextUrl.pathname.startsWith("/api/")) {
+    return supabaseResponse;
+  }
+
   if (
     request.nextUrl.pathname !== "/" &&
     !user &&
