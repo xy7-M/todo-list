@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 import { execFileSync } from "node:child_process";
 import { writeFileSync, readFileSync, unlinkSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -88,6 +89,14 @@ function isFormatError(raw: string, status: number): boolean {
 
 export async function POST(req: NextRequest) {
   try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "未登录" }, { status: 401 });
+    }
+
     const form = await req.formData();
     const file = form.get("audio");
     if (!file || typeof file === "string") {
