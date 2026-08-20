@@ -1,25 +1,17 @@
-import originalExport from './next.config.original'
-import type { NextConfig } from 'next'
+import type { NextConfig } from "next";
 
-let config: NextConfig;
-if (typeof originalExport === 'function') {
-  // Function-style config: (phase, context) => NextConfig
-  // Wrap it to inject images config after resolution
-  const origFn = originalExport as any;
-  config = ((...args: any[]) => {
-    const resolved = origFn(...args);
-    if (resolved && typeof resolved.then === 'function') {
-      return (resolved as Promise<NextConfig>).then((c: any) => {
-        c.images = { ...c.images, loader: 'custom', loaderFile: './.edgeone/image-loader.mjs' };
-        return c;
-      });
-    }
-    (resolved as any).images = { ...(resolved as any).images, loader: 'custom', loaderFile: './.edgeone/image-loader.mjs' };
-    return resolved;
-  }) as any;
-} else {
-  config = { ...(originalExport as any) };
-  config.images = { ...config.images, loader: 'custom', loaderFile: './.edgeone/image-loader.mjs' };
-}
+// EdgeOne Pages 部署：云函数运行时不自动注入环境变量，
+// 通过 next.config 的 env 字段在 build 时从 .env.local（不入库）
+// 读取并内联进 server bundle，密钥不硬编码在源码里。
+const nextConfig: NextConfig = {
+  cacheComponents: true,
+  env: {
+    DEEPSEEK_API_KEY: process.env.DEEPSEEK_API_KEY ?? "",
+    SILICONFLOW_API_KEY: process.env.SILICONFLOW_API_KEY ?? "",
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "",
+  },
+};
 
-export default config;
+export default nextConfig;

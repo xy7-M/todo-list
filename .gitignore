@@ -21,6 +21,9 @@
 .transcode-tmp/
 /out/
 
+# edgeone pages build output (contains inlined server secrets!)
+.edgeone/
+
 # production
 /build
 
