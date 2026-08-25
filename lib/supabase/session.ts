@@ -7,14 +7,10 @@ export async function updateSession(request: NextRequest) {
     request,
   });
 
-  // If the env vars are not set, skip proxy check. You can remove this
-  // once you setup the project.
   if (!hasEnvVars) {
     return supabaseResponse;
   }
 
-  // With Fluid compute, don't put this client in a global environment
-  // variable. Always create a new one on each request.
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
@@ -24,9 +20,14 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value),
-          );
+          // EdgeOne Pages (opennextjs-pages) under Next.js 16 currently
+          // throws "s is not a function" on `request.cookies.set(...)`.
+          // We only mutate the *response* cookies (which is the path that
+          // matters for refreshing the user session on the browser). The
+          // request-cookie side-effect is lost, which is acceptable for
+          // this app: the route handlers re-read cookies via
+          // `lib/supabase/server.ts` and EdgeOne rebuilds the response
+          // cookie anyway, so the next request sees the refreshed token.
           supabaseResponse = NextResponse.next({
             request,
           });
@@ -38,19 +39,11 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  // Do not run code between createServerClient and
-  // supabase.auth.getClaims(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
-
-  // IMPORTANT: If you remove getClaims() and you use server-side rendering
-  // with the Supabase client, your users may be randomly logged out.
+  // Refresh the session; do not add any code between createServerClient
+  // and this call.
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
 
-  // /api/* routes do their own authorization (e.g. /api/parse-todo calls
-  // supabase.auth.getUser() internally and is guarded by RLS). Letting the
-  // proxy through avoids redirecting unauthenticated callers (e.g. the
-  // standalone /api/transcribe route) to the login page on a 307.
   if (request.nextUrl.pathname.startsWith("/api/")) {
     return supabaseResponse;
   }
@@ -61,24 +54,10 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith("/login") &&
     !request.nextUrl.pathname.startsWith("/auth")
   ) {
-    // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     return NextResponse.redirect(url);
   }
-
-  // IMPORTANT: You *must* return the supabaseResponse object as it is.
-  // If you're creating a new response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object to fit your needs, but avoid changing
-  //    the cookies!
-  // 4. Finally:
-  //    return myNewResponse
-  // If this is not done, you may be causing the browser and server to go out
-  // of sync and terminate the user's session prematurely!
 
   return supabaseResponse;
 }

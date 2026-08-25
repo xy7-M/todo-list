@@ -1,14 +1,16 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { type NextRequest } from "next/server";
+import { updateSession } from "@/lib/supabase/session";
 
-// EdgeOne Pages (opennextjs-pages) currently chokes on the full Supabase
-// session-refresh middleware under Next.js 16 ("s is not a function" coming
-// from request.cookies.set). We move the responsibility into per-route
-// checks: every server page / API route does its own
-// `createClient().auth.getUser()` and redirects / returns 401 itself.
-// To opt out of EdgeOne's middleware runner we just pass the request
-// through unchanged.
-export function middleware(request: NextRequest) {
-  return NextResponse.next({ request });
+// We call the real Supabase session refresh here. Previously this file was
+// minimised to a passthrough to dodge a "s is not a function" error coming
+// from `request.cookies.set` under Next.js 16 + EdgeOne opennextjs-pages.
+// That dodge caused EdgeOne to mis-detect the project as "no server-handler
+// detected" and refuse to build the SSR bundle. The fix lives in
+// `lib/supabase/session.ts`: it does not call `request.cookies.set`, only
+// `supabaseResponse.cookies.set`, so the EdgeOne cookie bug is dodged
+// while the SSR pipeline is still detected.
+export async function middleware(request: NextRequest) {
+  return await updateSession(request);
 }
 
 export const config = {
