@@ -34,12 +34,20 @@ function cleanTranscript(text: string): string {
     .trim();
 }
 
-// Resolve the bundled ffmpeg binary (optional). Returns null if unavailable.
+// Resolve a system-installed ffmpeg (optional fallback). Returns null if
+// unavailable. We intentionally do NOT bundle ffmpeg-static: its 70+MB binary
+// blows past the EdgeOne Pages 128MiB SSR function limit. The first call to
+// SiliconFlow already accepts the browser's native webm/wav/m4a formats, so
+// this fallback is only useful for rare unsupported inputs.
 async function resolveFfmpeg(): Promise<string | null> {
   try {
-    const mod = await import("ffmpeg-static");
-    const p = (mod as any).default || mod;
-    return typeof p === "string" ? p : null;
+    const cmd = process.platform === "win32" ? "where" : "which";
+    const out = execFileSync(cmd, ["ffmpeg"], {
+      stdio: ["ignore", "pipe", "ignore"],
+    })
+      .toString()
+      .trim();
+    return out.split(/\r?\n/)[0] || null;
   } catch {
     return null;
   }
