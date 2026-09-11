@@ -21,9 +21,6 @@
 .transcode-tmp/
 /out/
 
-# edgeone pages build output (contains inlined server secrets!)
-.edgeone/
-
 # production
 /build
 
@@ -37,11 +34,12 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*.local
+# env files —— 密钥绝不入库（Vercel 上在项目设置里配置环境变量）
+# secrets must never be committed; configure them in Vercel project settings
 .env
+.env*.local
 
-# vercel
+# vercel —— 本地项目链接信息，不入库
 .vercel
 
 # typescript
@@ -50,5 +48,3 @@ next-env.d.ts
 
 # local dev / test scaffolding (not part of the published app)
 scripts-test/
-
-.vercel

@@ -4,6 +4,14 @@ import { execFileSync } from "node:child_process";
 import { writeFileSync, readFileSync, unlinkSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 
+// Vercel：必须使用 Node.js 运行时（依赖 Buffer / node:fs / node:child_process），
+// 并给这个路由留足执行时间（音频转写 + 可能的 ffmpeg 回退转码）。
+// Vercel: this route requires the Node.js runtime (Buffer / node:fs /
+// node:child_process) and a generous max duration for transcription + fallback.
+export const runtime = "nodejs";
+export const maxDuration = 60;
+export const dynamic = "force-dynamic";
+
 const SILICONFLOW_URL = "https://api.siliconflow.cn/v1/audio/transcriptions";
 const MODEL = "FunAudioLLM/SenseVoiceSmall";
 

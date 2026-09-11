@@ -1,14 +1,12 @@
 import { type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/session";
 
-// We call the real Supabase session refresh here. Previously this file was
-// minimised to a passthrough to dodge a "s is not a function" error coming
-// from `request.cookies.set` under Next.js 16 + EdgeOne opennextjs-pages.
-// That dodge caused EdgeOne to mis-detect the project as "no server-handler
-// detected" and refuse to build the SSR bundle. The fix lives in
-// `lib/supabase/session.ts`: it does not call `request.cookies.set`, only
-// `supabaseResponse.cookies.set`, so the EdgeOne cookie bug is dodged
-// while the SSR pipeline is still detected.
+/**
+ * Next.js Middleware —— 每个匹配到的请求都会先刷新 Supabase 会话。
+ * Middleware entry point: refreshes the Supabase session on every matched request.
+ *
+ * 运行在 Vercel Edge Runtime（Next.js 默认），@supabase/ssr 完全支持。
+ */
 export async function middleware(request: NextRequest) {
   return await updateSession(request);
 }
@@ -16,12 +14,11 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - images - .svg, .png, .jpg, .jpeg, .gif, .webp
-     * Feel free to modify this pattern to include more paths.
+     * 匹配除以下之外的所有路径：
+     * - _next/static（静态资源）
+     * - _next/image（图片优化）
+     * - favicon.ico
+     * - 各类图片后缀
      */
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],

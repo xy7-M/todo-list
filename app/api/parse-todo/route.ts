@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+// Vercel：使用 Node.js 运行时（Supabase SSR 读 cookie + 逐条写入数据库），
+// 并保证该路由永不被静态化缓存。
+// Vercel: Node.js runtime + never statically cached.
+export const runtime = "nodejs";
+export const maxDuration = 30;
+export const dynamic = "force-dynamic";
+
 const DEEPSEEK_URL = "https://api.deepseek.com/chat/completions";
 const MODEL = "deepseek-chat";
 
