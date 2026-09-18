@@ -16,6 +16,7 @@ import {
   LogIn,
   UserPlus,
   LogOut,
+  Bell,
 } from "lucide-react";
 
 type Todo = {
@@ -72,6 +73,13 @@ export default function Home() {
   const [uploadingImg, setUploadingImg] = useState(false);
   const [parsing, setParsing] = useState(false);
   const [priority, setPriority] = useState<"high" | "medium" | "low">("medium");
+
+  // Floating reminder: todos due within the next 5 minutes pop a card in the
+  // bottom-right corner. Dismissed ids are remembered per session.
+  const [now, setNow] = useState(() => Date.now());
+  const [dismissedReminders, setDismissedReminders] = useState<Set<string>>(
+    () => new Set(),
+  );
 
   const mediaRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
@@ -166,6 +174,26 @@ export default function Home() {
     });
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  // Tick the clock every 10s so the "还有X分钟" countdown stays fresh.
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 10_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const REMINDER_WINDOW_MS = 5 * 60 * 1000;
+  const upcomingReminders = todos
+    .filter((t) => !t.done && !dismissedReminders.has(t.id) && t.due_date)
+    .map((t) => ({ todo: t, msLeft: new Date(t.due_date!).getTime() - now }))
+    .filter(
+      (r) =>
+        !isNaN(r.msLeft) && r.msLeft > 0 && r.msLeft <= REMINDER_WINDOW_MS,
+    )
+    .sort((a, b) => a.msLeft - b.msLeft);
+
+  function dismissReminder(id: string) {
+    setDismissedReminders((s) => new Set(s).add(id));
+  }
 
   async function signOut() {
     if (!supabase) return;
@@ -660,6 +688,43 @@ export default function Home() {
           })}
         </ul>
       </div>
+
+      {/* Floating reminder — bottom-right, due within 5 minutes */}
+      {upcomingReminders.length > 0 && (
+        <div className="fixed bottom-4 right-4 z-50 flex w-[calc(100vw-2rem)] max-w-xs flex-col gap-2">
+          {upcomingReminders.map(({ todo, msLeft }) => {
+            const mins = Math.ceil(msLeft / 60000);
+            return (
+              <div
+                key={todo.id}
+                className="animate-[popIn_0.25s_ease] rounded-xl border border-cyan-500/40 bg-slate-900/95 p-3 shadow-lg shadow-cyan-500/10"
+                role="alert"
+              >
+                <div className="flex items-start gap-2">
+                  <Bell size={16} className="mt-0.5 flex-none text-cyan-400" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-slate-100">
+                      {mins <= 1 ? "不到 1 分钟" : `还有 ${mins} 分钟`}
+                      就要开始了
+                    </p>
+                    <p className="mt-0.5 break-words text-xs text-slate-400">
+                      {todo.text}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => dismissReminder(todo.id)}
+                    className="flex-none text-slate-500 transition hover:text-slate-200"
+                    title="忽略提醒"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </main>
   );
 }
