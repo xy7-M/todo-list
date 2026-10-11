@@ -1,4 +1,7 @@
 {
+  "crons": [
+    { "path": "/api/keepalive", "schedule": "0 3 * * *" }
+  ],
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "buildCommand": "next build",
