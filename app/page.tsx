@@ -398,7 +398,7 @@ export default function Home() {
   return (
     <main className="min-h-screen text-ink">
       <div className="mx-auto max-w-2xl px-4 py-10">
-        <header className="mb-8 flex items-start justify-between gap-4">
+        <header className="mb-8 flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             {/*
               Emoji lives in its own element so React 19's text-node
@@ -423,7 +423,7 @@ export default function Home() {
           </div>
 
           {hasEnvVars && (
-            <div className="flex flex-none items-center gap-2 pt-1">
+            <div className="flex flex-none flex-wrap items-center gap-2 pt-1">
               {user ? (
                 <>
                   <span
@@ -511,9 +511,9 @@ export default function Home() {
             })}
           </div>
 
-          <div className="mt-2 flex items-center justify-between gap-2">
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
             {/* left: image + mic (side by side, inside the box) */}
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
@@ -563,7 +563,7 @@ export default function Home() {
             </div>
 
             {/* right: two capsule action buttons */}
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={aiParse}
