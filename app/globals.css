@@ -4,57 +4,66 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
+    /* ==== 奶油纸墨 · 主题令牌（shadcn tokens，HSL） ==== */
+    --background: 37 39% 94%;          /* 奶油纸 #F5F0E8 */
+    --foreground: 44 24% 9%;           /* 墨黑 #1C1911 */
+    --card: 38 52% 96%;                /* 卡纸 #FAF6EF */
+    --card-foreground: 44 24% 9%;
+    --popover: 38 52% 97%;
+    --popover-foreground: 44 24% 9%;
+    --primary: 44 24% 9%;              /* 主按钮：墨黑 */
+    --primary-foreground: 38 45% 96%;
+    --secondary: 38 30% 89%;
+    --secondary-foreground: 44 24% 9%;
+    --muted: 38 30% 89%;
+    --muted-foreground: 40 8% 44%;     /* 灰墨 #7A7468 */
+    --accent: 38 40% 90%;              /* 悬停奶油 */
+    --accent-foreground: 44 24% 9%;
+    --destructive: 9 72% 50%;
+    --destructive-foreground: 38 45% 97%;
+    --border: 44 24% 9%;               /* 墨线描边 */
+    --input: 44 24% 9%;
+    --ring: 9 77% 60%;                 /* 焦点环：暖橙红 */
+    --chart-1: 9 77% 60%;
+    --chart-2: 47 91% 72%;
+    --chart-3: 130 20% 45%;
+    --chart-4: 205 25% 45%;
+    --chart-5: 30 60% 55%;
+    --radius: 1rem;                    /* 卡片 16px 圆角 */
+
+    /* ==== 原始色板（hex，供贴纸/自定义类直接引用） ==== */
+    --paper: #f5f0e8;
+    --paper-dot: #e4dccb;
+    --card-paper: #faf6ef;
+    --ink: #1c1911;
+    --ink-2: #7a7468;
+    --brand: #e8634a;                  /* 强调色：暖橙红 */
+    --brand-fg: #fff7f2;
+    --note: #fbe8a6;                   /* 便利贴黄 */
+    --font-display: "Kaiti SC", "STKaiti", KaiTi, "Songti SC", "Noto Serif SC", serif;
   }
+
+  /* 深色模式也保持奶油风，避免旧主题残留导致页面发黑 */
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --background: 37 39% 94%;
+    --foreground: 44 24% 9%;
+    --card: 38 52% 96%;
+    --card-foreground: 44 24% 9%;
+    --popover: 38 52% 97%;
+    --popover-foreground: 44 24% 9%;
+    --primary: 44 24% 9%;
+    --primary-foreground: 38 45% 96%;
+    --secondary: 38 30% 89%;
+    --secondary-foreground: 44 24% 9%;
+    --muted: 38 30% 89%;
+    --muted-foreground: 40 8% 44%;
+    --accent: 38 40% 90%;
+    --accent-foreground: 44 24% 9%;
+    --destructive: 9 72% 50%;
+    --destructive-foreground: 38 45% 97%;
+    --border: 44 24% 9%;
+    --input: 44 24% 9%;
+    --ring: 9 77% 60%;
   }
 }
 
@@ -64,7 +73,70 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* 点阵纸纹 */
+    background-image: radial-gradient(var(--paper-dot) 1.2px, transparent 1.2px);
+    background-size: 26px 26px;
+    background-attachment: fixed;
   }
+}
+
+@layer components {
+  /* 贴纸卡片：16px 圆角 + 墨黑描边 + 硬边偏移投影（禁模糊阴影） */
+  .sticker {
+    border-radius: 16px;
+    border: 2px solid var(--ink);
+    background-color: var(--card-paper);
+    box-shadow: 4px 4px 0 0 var(--ink);
+  }
+  .sticker-sm {
+    border-radius: 14px;
+    border: 2px solid var(--ink);
+    background-color: var(--card-paper);
+    box-shadow: 3px 3px 0 0 var(--ink);
+  }
+  .sticker,
+  .sticker-sm {
+    transition: box-shadow 0.16s ease, transform 0.16s ease;
+  }
+  .sticker:hover,
+  .sticker-sm:hover {
+    box-shadow: 6px 6px 0 0 var(--ink);
+  }
+  /* 贴纸交替倾斜 */
+  .tilt-a {
+    transform: rotate(-1.4deg);
+  }
+  .tilt-b {
+    transform: rotate(1.2deg);
+  }
+  .font-display {
+    font-family: var(--font-display);
+  }
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: 0.5px;
+}
+
+::selection {
+  background: var(--brand);
+  color: #fff;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track {
+  background: var(--paper);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--ink);
+  border-radius: 999px;
+  border: 3px solid var(--paper);
 }
 
 @keyframes popIn {

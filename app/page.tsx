@@ -51,11 +51,11 @@ function formatDueDate(iso: string | null): string | null {
 function priorityStyle(p: string): { label: string; cls: string } {
   switch (p) {
     case "high":
-      return { label: "高", cls: "bg-red-500/15 text-red-300 border-red-500/30" };
+      return { label: "高", cls: "border-ink bg-[#f3d6ce] text-[#8c2e17]" };
     case "low":
-      return { label: "低", cls: "bg-slate-500/15 text-slate-300 border-slate-500/30" };
+      return { label: "低", cls: "border-ink bg-[#dbe3d7] text-[#3f5b43]" };
     default:
-      return { label: "中", cls: "bg-amber-500/15 text-amber-300 border-amber-500/30" };
+      return { label: "中", cls: "border-ink bg-note text-[#7a5a0f]" };
   }
 }
 
@@ -396,7 +396,7 @@ export default function Home() {
   const inputDisabled = !supabase || !user;
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
+    <main className="min-h-screen text-ink">
       <div className="mx-auto max-w-2xl px-4 py-10">
         <header className="mb-8 flex items-start justify-between gap-4">
           <div className="min-w-0">
@@ -409,13 +409,13 @@ export default function Home() {
               rendered string is identical, only the SSR vs CSR pipeline disagrees.
             */}
             <h1
-              className="bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-3xl font-bold text-transparent"
+              className="font-display text-3xl font-bold text-ink"
               suppressHydrationWarning
             >
               <span aria-hidden="true" suppressHydrationWarning>🎙️</span>
               {" Todo · 语音待办"}
             </h1>
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="mt-1 text-sm text-ink-soft">
               {hasEnvVars
                 ? "说一句话，AI 帮你拆成待办。支持语音输入 / 图片 / 自然语言解析。"
                 : "Supabase 未配置：可体验「语音输入 → 文字」流程，待办不会保存到云端。"}
@@ -428,14 +428,14 @@ export default function Home() {
                 <>
                   <span
                     title={user.email ?? ""}
-                    className="hidden max-w-[160px] truncate text-xs text-slate-400 sm:inline"
+                    className="hidden max-w-[160px] truncate text-xs text-ink-soft sm:inline"
                   >
                     {user.email}
                   </span>
                   <button
                     type="button"
                     onClick={signOut}
-                    className="flex h-8 items-center gap-1 rounded-full border border-slate-700 bg-slate-800 px-3 text-xs text-slate-300 transition hover:border-slate-500 hover:text-slate-100"
+                    className="flex h-8 items-center gap-1 rounded-full border-2 border-ink bg-card px-3 text-xs text-ink shadow-[2px_2px_0_0_var(--ink)] transition hover:bg-accent"
                   >
                     <LogOut size={14} />
                     退出
@@ -446,7 +446,7 @@ export default function Home() {
                   <Link
                     href="/auth/login"
                     prefetch
-                    className="flex h-8 items-center gap-1 rounded-full border border-slate-700 bg-slate-800 px-3 text-xs text-slate-300 transition hover:border-cyan-500/50 hover:text-cyan-300"
+                    className="flex h-8 items-center gap-1 rounded-full border-2 border-ink bg-card px-3 text-xs text-ink shadow-[2px_2px_0_0_var(--ink)] transition hover:bg-accent"
                   >
                     <LogIn size={14} />
                     登录
@@ -454,7 +454,7 @@ export default function Home() {
                   <Link
                     href="/auth/sign-up"
                     prefetch
-                    className="flex h-8 items-center gap-1 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 px-3 text-xs font-medium text-white shadow transition hover:opacity-90"
+                    className="flex h-8 items-center gap-1 rounded-full border-2 border-ink bg-brand px-3 text-xs font-medium text-white shadow-[2px_2px_0_0_var(--ink)] transition hover:opacity-90"
                   >
                     <UserPlus size={14} />
                     注册
@@ -466,7 +466,7 @@ export default function Home() {
         </header>
 
         {!hasEnvVars && (
-          <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+          <div className="mb-4 rounded-lg border-2 border-ink bg-note px-4 py-3 text-sm text-ink">
             Supabase 未配置：待办不会保存到云端，但可体验「语音输入 → 文字」流程。
             在 <code>.env.local</code> 填入 <code>NEXT_PUBLIC_SUPABASE_URL</code> 与{" "}
             <code>NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY</code> 即可启用完整功能。
@@ -474,19 +474,19 @@ export default function Home() {
         )}
 
         {/* Smart input box */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-3 shadow-lg shadow-blue-500/5">
+        <div className="sticker p-3">
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="说点什么，或点麦克风录音…例如：明天下午三点提醒我带钥匙"
             rows={2}
-            className="w-full resize-none bg-transparent px-2 py-1 text-base text-slate-100 placeholder:text-slate-500 focus:outline-none"
+            className="w-full resize-none bg-transparent px-2 py-1 text-base text-ink placeholder:text-ink-soft focus:outline-none"
           />
 
           {/* Priority selector: 高 / 中 / 低 — applies to direct add and as the
               default for AI-parsed todos (the AI can still override per item). */}
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5 px-2">
-            <span className="text-[11px] uppercase tracking-wider text-slate-500">
+            <span className="text-[11px] uppercase tracking-wider text-ink-soft">
               优先级
             </span>
             {(["high", "medium", "low"] as const).map((p) => {
@@ -498,10 +498,10 @@ export default function Home() {
                   type="button"
                   onClick={() => setPriority(p)}
                   className={
-                    "rounded-full border px-2.5 py-0.5 text-xs transition " +
+                    "rounded-full border-2 px-2.5 py-0.5 text-xs transition " +
                     (active
                       ? ps.cls + " ring-1 ring-current"
-                      : "border-slate-700 bg-slate-800/40 text-slate-400 hover:border-slate-600 hover:text-slate-200")
+                      : "border-ink bg-card text-ink-soft hover:bg-accent hover:text-ink")
                   }
                   aria-pressed={active}
                 >
@@ -519,7 +519,7 @@ export default function Home() {
                 onClick={() => fileRef.current?.click()}
                 disabled={uploadingImg || inputDisabled}
                 title="添加图片"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-slate-300 transition hover:border-cyan-500/50 hover:text-cyan-300 disabled:opacity-40"
+                className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-ink bg-card text-ink shadow-[2px_2px_0_0_var(--ink)] transition hover:bg-accent disabled:opacity-40"
               >
                 {uploadingImg ? (
                   <Loader2 size={18} className="animate-spin" />
@@ -541,8 +541,8 @@ export default function Home() {
                 title={recording ? "停止录音" : "开始录音"}
                 className={
                   recording
-                    ? "flex h-9 items-center gap-2 rounded-full border border-red-500/60 bg-red-500/15 px-3 text-sm text-red-300 animate-pulse"
-                    : "flex h-9 w-9 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-slate-300 transition hover:border-blue-500/50 hover:text-blue-300"
+                    ? "flex h-9 items-center gap-2 rounded-full border-2 border-ink bg-[#f8e0d8] px-3 text-sm text-brand animate-pulse"
+                    : "flex h-9 w-9 items-center justify-center rounded-full border-2 border-ink bg-card text-ink shadow-[2px_2px_0_0_var(--ink)] transition hover:bg-accent"
                 }
               >
                 {recording ? (
@@ -556,7 +556,7 @@ export default function Home() {
               </button>
 
               {recognizing && (
-                <span className="flex items-center gap-1 text-xs text-cyan-300">
+                <span className="flex items-center gap-1 text-xs text-brand">
                   <Loader2 size={14} className="animate-spin" /> 识别中…
                 </span>
               )}
@@ -568,7 +568,7 @@ export default function Home() {
                 type="button"
                 onClick={aiParse}
                 disabled={parsing || !text.trim() || inputDisabled}
-                className="flex h-9 items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 px-4 text-sm font-medium text-white shadow transition hover:opacity-90 disabled:opacity-40"
+                className="flex h-9 items-center gap-1.5 rounded-full border-2 border-ink bg-brand px-4 text-sm font-medium text-white shadow-[3px_3px_0_0_var(--ink)] transition hover:opacity-90 disabled:opacity-40"
               >
                 {parsing ? (
                   <Loader2 key="ai-loading" size={16} className="animate-spin" />
@@ -581,7 +581,7 @@ export default function Home() {
                 type="button"
                 onClick={addDirect}
                 disabled={!text.trim() || inputDisabled}
-                className="flex h-9 items-center gap-1.5 rounded-full border border-slate-700 bg-slate-800 px-4 text-sm font-medium text-slate-200 transition hover:border-slate-500 disabled:opacity-40"
+                className="flex h-9 items-center gap-1.5 rounded-full border-2 border-ink bg-card px-4 text-sm font-medium text-ink shadow-[3px_3px_0_0_var(--ink)] transition hover:bg-accent disabled:opacity-40"
               >
                 <Send size={16} />
                 直接添加
@@ -590,7 +590,7 @@ export default function Home() {
           </div>
 
           {pendingImage && (
-            <div className="mt-2 inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800/60 px-2 py-1">
+            <div className="mt-2 inline-flex items-center gap-2 rounded-lg border-2 border-ink bg-card px-2 py-1">
               <img
                 src={pendingImage}
                 alt="pending"
@@ -599,7 +599,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setPendingImage(null)}
-                className="text-slate-400 hover:text-red-300"
+                className="text-ink-soft hover:text-brand"
                 title="移除图片"
               >
                 <X size={14} />
@@ -608,7 +608,7 @@ export default function Home() {
           )}
 
           {hint && (
-            <p className="mt-2 px-1 text-xs text-slate-400">{hint}</p>
+            <p className="mt-2 px-1 text-xs text-ink-soft">{hint}</p>
           )}
         </div>
 
@@ -617,26 +617,26 @@ export default function Home() {
           {todos.length === 0 && (
             <li
               key="empty"
-              className="rounded-xl border border-dashed border-slate-800 px-4 py-10 text-center text-sm text-slate-500"
+              className="rounded-xl border-2 border-dashed border-[#cfc7b6] px-4 py-10 text-center text-sm text-ink-soft"
             >
               还没有待办。登录后说一句话试试吧。
             </li>
           )}
-          {todos.map((t) => {
+          {todos.map((t, i) => {
             const ps = priorityStyle(t.priority);
             const due = formatDueDate(t.due_date);
             return (
               <li
                 key={t.id}
-                className="flex items-start gap-3 rounded-xl border border-slate-800 bg-slate-900/40 p-3"
+                className={"sticker-sm flex items-start gap-3 p-3 " + (i % 2 ? "tilt-b" : "tilt-a")}
               >
                 <button
                   type="button"
                   onClick={() => toggle(t)}
-                  className={`mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-md border ${
+                  className={`mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-md border-2 border-ink ${
                     t.done
-                      ? "border-cyan-500 bg-cyan-500 text-slate-950"
-                      : "border-slate-600"
+                      ? "bg-brand text-white"
+                      : "bg-card"
                   }`}
                   title={t.done ? "标记未完成" : "标记完成"}
                 >
@@ -646,7 +646,7 @@ export default function Home() {
                 <div className="min-w-0 flex-1">
                   <p
                     className={`break-words text-sm ${
-                      t.done ? "text-slate-500 line-through" : "text-slate-100"
+                      t.done ? "text-ink-soft line-through" : "text-ink"
                     }`}
                   >
                     {t.text}
@@ -655,13 +655,13 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={() => cyclePriority(t)}
-                      className={`rounded border px-1.5 py-0.5 text-[11px] transition hover:opacity-80 ${ps.cls}`}
+                      className={`rounded-lg border-2 px-1.5 py-0.5 text-[11px] transition hover:opacity-80 ${ps.cls}`}
                       title="点击切换优先级"
                     >
                       {ps.label}
                     </button>
                     {due && (
-                      <span className="rounded border border-slate-700 bg-slate-800/60 px-1.5 py-0.5 text-[11px] text-slate-300">
+                      <span className="rounded-lg border-2 border-ink bg-note px-1.5 py-0.5 text-[11px] text-ink">
                         ⏰ {due}
                       </span>
                     )}
@@ -670,7 +670,7 @@ export default function Home() {
                     <img
                       src={t.image_url}
                       alt=""
-                      className="mt-2 max-h-40 rounded-lg border border-slate-800"
+                      className="mt-2 max-h-40 rounded-lg border-2 border-ink"
                     />
                   )}
                 </div>
@@ -678,7 +678,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => remove(t)}
-                  className="flex-none text-slate-500 transition hover:text-red-400"
+                  className="flex-none text-ink-soft transition hover:text-brand"
                   title="删除"
                 >
                   <X size={16} />
@@ -697,24 +697,24 @@ export default function Home() {
             return (
               <div
                 key={todo.id}
-                className="animate-[popIn_0.25s_ease] rounded-xl border border-cyan-500/40 bg-slate-900/95 p-3 shadow-lg shadow-cyan-500/10"
+                className="animate-[popIn_0.25s_ease] sticker-sm p-3"
                 role="alert"
               >
                 <div className="flex items-start gap-2">
-                  <Bell size={16} className="mt-0.5 flex-none text-cyan-400" />
+                  <Bell size={16} className="mt-0.5 flex-none text-brand" />
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-slate-100">
+                    <p className="text-sm font-medium text-ink">
                       {mins <= 1 ? "不到 1 分钟" : `还有 ${mins} 分钟`}
                       就要开始了
                     </p>
-                    <p className="mt-0.5 break-words text-xs text-slate-400">
+                    <p className="mt-0.5 break-words text-xs text-ink-soft">
                       {todo.text}
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => dismissReminder(todo.id)}
-                    className="flex-none text-slate-500 transition hover:text-slate-200"
+                    className="flex-none text-ink-soft transition hover:text-ink"
                     title="忽略提醒"
                   >
                     <X size={14} />

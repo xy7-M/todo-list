@@ -44,6 +44,17 @@ export default {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
+        /* 奶油纸墨扩展色板 */
+        paper: "var(--paper)",
+        ink: {
+          DEFAULT: "var(--ink)",
+          soft: "var(--ink-2)",
+        },
+        brand: {
+          DEFAULT: "var(--brand)",
+          fg: "var(--brand-fg)",
+        },
+        note: "var(--note)",
         chart: {
           "1": "hsl(var(--chart-1))",
           "2": "hsl(var(--chart-2))",
@@ -56,6 +67,9 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      fontFamily: {
+        display: "var(--font-display)",
       },
     },
   },
