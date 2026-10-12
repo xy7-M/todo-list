@@ -24,6 +24,7 @@ export function LoginForm({
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [needVerify, setNeedVerify] = useState(false);
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -43,11 +44,12 @@ export function LoginForm({
       router.refresh();
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : "";
+      setNeedVerify(/email not confirmed|invalid login credentials/i.test(msg));
       setError(
         /invalid login credentials/i.test(msg)
-          ? "邮箱或密码不对；若刚注册，请先到邮箱点确认链接。"
+          ? "邮箱或密码不对；若是刚注册的账号，请先用邮箱里的 6 位验证码完成验证。"
           : /email not confirmed/i.test(msg)
-            ? "这个邮箱还没确认，请到邮箱点确认链接后再登录。"
+            ? "这个邮箱还没验证，请先用邮箱里的 6 位验证码完成验证。"
             : msg || "登录失败，请稍后重试",
       );
     } finally {
@@ -95,6 +97,16 @@ export function LoginForm({
                 />
               </div>
               {error && <p className="text-sm text-brand">{error}</p>}
+              {needVerify && email && (
+                <p className="text-sm">
+                  <Link
+                    href={`/auth/verify?email=${encodeURIComponent(email)}`}
+                    className="underline underline-offset-4"
+                  >
+                    去输入邮箱验证码 →
+                  </Link>
+                </p>
+              )}
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "登录中…" : "登录"}
               </Button>

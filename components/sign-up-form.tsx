@@ -49,11 +49,11 @@ export function SignUpForm({
       });
       if (error) throw error;
       // 若项目关闭了"邮箱确认"（Autoconfirm），signUp 会直接返回 session —— 直接进主页。
-      // 否则跳到"请查收邮件"页，并把邮箱带上，方便重发确认邮件。
+      // 否则跳到「输入 6 位邮箱验证码」页，并把邮箱带上，方便重发验证码。
       if (data.session) {
         router.push("/");
       } else {
-        router.push(`/auth/sign-up-success?email=${encodeURIComponent(email)}`);
+        router.push(`/auth/verify?email=${encodeURIComponent(email)}`);
       }
       router.refresh();
     } catch (error: unknown) {
